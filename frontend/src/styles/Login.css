@@ -1,0 +1,9 @@
+.login__bg {
+  background: linear-gradient(90deg, #2A69EC, #7112DE);
+  background-image: url('../assets/login-bg.png'), linear-gradient(90deg, #2A69EC, #7112DE); 
+  height: 80vh;
+  background-size: contain; 
+  background-position: center;
+  background-repeat: no-repeat;
+  border-radius: var(--radius-base);
+}
