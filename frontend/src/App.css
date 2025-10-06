@@ -1,0 +1,142 @@
+:root {
+  /*  Base colors */
+  --color-white: #ffffff;
+  --color-light: #f9fafb;
+  --color-dark: #1e1e2f;
+  --color-gray: #6b7280;
+
+  /*  Gradients */
+  --gradient-warm: linear-gradient(90deg, #FEAC0C, #FF3747);
+  --gradient-cool: linear-gradient(90deg, #2A69EC, #7112DE);
+
+  /* Accent solid colors (for borders or text if needed) */
+  --color-warm-start: #FEAC0C;
+  --color-warm-end: #FF3747;
+  --color-cool-start: #2A69EC;
+  --color-cool-end: #7112DE;
+
+  /*  Buttons */
+  --btn-primary-bg: var(--gradient-warm);
+  --btn-primary-text: var(--color-white);
+  --btn-secondary-bg: var(--color-white);
+  --btn-secondary-border: var(--color-cool-start);
+  --btn-secondary-text: var(--color-cool-start);
+
+  /* Shadows */
+  --shadow-light: 0 4px 10px rgba(0, 0, 0, 0.05);
+  --shadow-warm: 0 4px 12px rgba(255, 55, 71, 0.3);
+  --shadow-cool: 0 4px 12px rgba(42, 105, 236, 0.3);
+
+  /* Typography */
+  --font-primary: 'Poppins', sans-serif;
+  --font-size-base: 16px;
+  --font-size-title: 2.5rem;
+  --font-size-subtitle: 1.25rem;
+  --font-size-small: 0.875rem;
+
+  /*  Transitions */
+  --transition-fast: 0.4s ease;
+  --transition-smooth: 0.7s ease-in-out;
+
+  /*  Radius */
+  --radius-base: 8px;
+  --radius-round: 999px;
+}
+
+
+/* ===========================
+    HEADINGS
+=========================== */
+
+h1, h2, h3 {
+  font-family: var(--font-primary);
+  color: var(--color-dark);
+  font-weight: 700;
+  margin-bottom: 0.5em;
+}
+
+h1 {
+  font-size: var(--font-size-title);
+  background: var(--gradient-cool);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+h2 {
+  font-size: var(--font-size-subtitle);
+  background: var(--gradient-warm);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+h3 {
+  font-size: var(--font-size-base);
+  color: var(--color-dark);
+}
+
+/* ===========================
+    BUTTONS
+=========================== */
+
+.btn {
+  font-family: var(--font-primary);
+  font-weight: 600;
+  border-radius: var(--radius-base);
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  padding: 0.75rem 1.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.5 ease;
+}
+
+/* 🟠 PRIMARY BUTTON */
+.btn-primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: none;
+  box-shadow: var(--shadow-warm);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 16px rgba(255, 55, 71, 0.4);
+}
+
+/* 🔵 SECONDARY BUTTON */
+.btn-style-secondary {
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border: 2px solid var(--btn-secondary-border);
+  box-shadow: var(--shadow-light);
+}
+
+.btn-style-secondary:hover {
+  background: var(--gradient-cool);
+  color: var(--color-white);
+  border-color: transparent;
+  box-shadow: var(--shadow-light);
+  transform: scale(1.1);
+}
+
+/* Optional rounded style */
+.btn-rounded {
+  border-radius: var(--radius-round);
+}
+
+/* ===========================
+   ✨ TEXT UTILS
+=========================== */
+
+.text-gradient-warm {
+  background: var(--gradient-warm);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.text-gradient-cool {
+  background: var(--gradient-cool);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
