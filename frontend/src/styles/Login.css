@@ -1,9 +1,186 @@
-.login__bg {
-  background: linear-gradient(90deg, #2A69EC, #7112DE);
-  background-image: url('../assets/login-bg.png'), linear-gradient(90deg, #2A69EC, #7112DE); 
-  height: 80vh;
-  background-size: contain; 
-  background-position: center;
-  background-repeat: no-repeat;
-  border-radius: var(--radius-base);
+/* =========================================================
+   LOGIN PAGE - GENERAL STYLES
+   ========================================================= */
+.login__page {
+  background: linear-gradient(
+    180deg,
+    rgba(42, 105, 236, 0.12) 0%,
+    rgba(113, 18, 222, 0.08) 100%
+  );
+  min-height: calc(100vh - 110px);
+  display: flex;
+  align-items: center;
+}
+
+/* =========================================================
+   LEFT COLUMN (ILLUSTRATION / CONTENT)
+   ========================================================= */
+.login__content {
+  padding: 2rem;
+}
+
+.gradient__text {
+  background-image: linear-gradient(90deg, #feac0c, #ff3747);
+}
+
+.login-image {
+  max-width: 350px;
+  animation: slideIn 1.2s ease-out forwards;
+}
+
+/* -------------------------
+   Image Animation
+   ------------------------- */
+@keyframes slideIn {
+  0% {
+    transform: translate(-100px, 100px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+}
+
+/* =========================================================
+   FORM STYLES
+   ========================================================= */
+.login__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.3rem;
+}
+
+.login__options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+/* =========================================================
+   CUSTOM CHECKBOX
+   ========================================================= */
+.form-check-input.custom-checkbox {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 4px;
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  background-clip: padding-box;
+}
+
+.form-check-input.custom-checkbox:focus {
+  outline: 3px solid rgba(42, 105, 236, 0.18);
+  outline-offset: 2px;
+}
+
+.form-check-input.custom-checkbox:checked {
+  border: none;
+  background-image: linear-gradient(90deg, #feac0c, #ff3747);
+  box-shadow: 0 6px 18px rgba(42, 105, 236, 0.22);
+}
+
+.form-check-input.custom-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 2px;
+  width: 6px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Label next to checkbox */
+.form-check-label {
+  color: var(--color-gray);
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* =========================================================
+   FORGOT PASSWORD LINK
+   ========================================================= */
+.forgot-link {
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.forgot-link:hover,
+.forgot-link:focus {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  text-decoration: underline;
+}
+
+.forgot-link:focus-visible {
+  outline: 3px solid #7112de;
+  outline-offset: 3px;
+}
+
+/* =========================================================
+   CLEAN LINK (E.G. CREATE ACCOUNT)
+   ========================================================= */
+.link-clean {
+  color: var(--color-cool-start);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.link-clean:hover,
+.link-clean:focus {
+  color: var(--color-cool-end);
+  text-decoration: underline;
+}
+
+/* =========================================================
+   MEDIA QUERIES
+   ========================================================= */
+
+/* Small screens (mobile) */
+@media (max-width: 575.98px) {
+  .form-check-input.custom-checkbox {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* Hide left content on mobile */
+@media (max-width: 767.98px) {
+  .login__content {
+    display: none;
+  }
+  .login__form {
+    width: 92%;
+    padding: 1.5rem;
+  }
+}
+
+/* Medium screens (tablet) */
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .login__content {
+    padding: 1.25rem;
+  }
+  .login__form {
+    width: 86%;
+  }
+}
+
+/* =========================================================
+   ACCESSIBILITY & REDUCED MOTION
+   ========================================================= */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }

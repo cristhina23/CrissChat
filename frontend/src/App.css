@@ -4,6 +4,7 @@
   --color-light: #f9fafb;
   --color-dark: #1e1e2f;
   --color-gray: #6b7280;
+  --color-medium: #625A5E;
 
   /*  Gradients */
   --gradient-warm: linear-gradient(90deg, #FEAC0C, #FF3747);
@@ -74,6 +75,28 @@ h3 {
   color: var(--color-dark);
 }
 
+ul {
+  list-style: none; /* sin bullets por defecto */
+  margin: 0;
+  padding: 0;
+}
+
+/* === Default list items === */
+li {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-color, #333);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.w500 {
+  font-weight: 500;
+}
+
+
 /* ===========================
     BUTTONS
 =========================== */
@@ -139,4 +162,8 @@ h3 {
   background: var(--gradient-cool);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.navbar {
+  padding: 0 !important;
 }
