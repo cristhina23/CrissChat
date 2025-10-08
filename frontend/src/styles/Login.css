@@ -1,7 +1,7 @@
 /* =========================================================
    LOGIN PAGE - GENERAL STYLES
    ========================================================= */
-.login__page {
+.login__page, .signup__page {
   background: linear-gradient(
     180deg,
     rgba(42, 105, 236, 0.12) 0%,
@@ -25,13 +25,18 @@
 
 .login-image {
   max-width: 350px;
-  animation: slideIn 1.2s ease-out forwards;
+  animation: slideInLeft 1.2s ease-out forwards;
+}
+
+.signup-image {
+  max-width: 400px;
+  animation: slideInRight 1.2s ease-out forwards;
 }
 
 /* -------------------------
    Image Animation
    ------------------------- */
-@keyframes slideIn {
+@keyframes slideInLeft {
   0% {
     transform: translate(-100px, 100px);
     opacity: 0;
@@ -42,6 +47,16 @@
   }
 }
 
+@keyframes slideInRight {
+  0% {
+    transform: translate(100px, 100px);
+    opacity: 0;
+  }
+  100% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+}
 /* =========================================================
    FORM STYLES
    ========================================================= */

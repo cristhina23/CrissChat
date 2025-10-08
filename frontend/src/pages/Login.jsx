@@ -93,7 +93,7 @@ function Login() {
                 Log in
               </Button>
 
-              <LinkContainer to="/register">
+              <LinkContainer to="/signup">
                 <a
                   className="btn btn-link w-100 text-decoration-none fw-semibold text-primary"
                   aria-label="create account"
