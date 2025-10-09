@@ -1,10 +1,18 @@
-import React from "react";
+import React, { useState }  from "react";
 import { Col, Container, Row, Button, Form, Image } from "react-bootstrap";
 import {LinkContainer} from 'react-router-bootstrap';
 import "../styles/Login.css";
 import LiginImg from "../assets/login-img.png";
 
 function Login() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  function handleLogin(e) {
+    e.preventDefault();
+    console.log(email, password);
+  }
+
   return (
     <div className="login__page" aria-labelledby="login-title">
       <Container>
@@ -14,9 +22,9 @@ function Login() {
             className="login__content d-none d-md-flex flex-column justify-content-center pe-4"
             aria-hidden="false"
           >
-            <h1 id="login-title" className="gradient__text mb-3">
+            <h2 id="login-title" className="gradient__text mb-3">
               Welcome to CrissChat
-            </h1>
+            </h2>
             <p className="text-muted login__subtitle">
               Connect, share, and stay close to the people who matter most.
             </p>
@@ -41,8 +49,10 @@ function Login() {
               className="login__form"
               style={{ width: "100%", maxWidth: 480 }}
               aria-label="login form"
+              onSubmit={handleLogin}
             >
-              <h2 className="text-center gradient__text mb-4">Log in</h2>
+              <h1 className="text-center gradient__text mb-4">Log in</h1>
+              
 
               <Form.Group className="mb-3" controlId="formBasicEmail">
                 <Form.Label className="w500">Email address</Form.Label>
@@ -51,6 +61,9 @@ function Login() {
                   placeholder="email@example.com"
                   aria-required="true"
                   aria-label="email"
+                  value={email}
+                  required
+                  onChange={(e) => setEmail(e.target.value)}
                 />
                 <Form.Text className="text-muted">
                   Please enter a valid email.
@@ -64,6 +77,9 @@ function Login() {
                   placeholder="******"
                   aria-required="true"
                   aria-label="password"
+                  value={password}
+                  required
+                  onChange={(e) => setPassword(e.target.value)}
                 />
                 <Form.Text className="text-muted">
                   The password must be at least 8 characters.
@@ -89,6 +105,7 @@ function Login() {
                 className="btn-primary-gradient w-100 mb-2"
                 type="submit"
                 aria-label="log in"
+                
               >
                 Log in
               </Button>

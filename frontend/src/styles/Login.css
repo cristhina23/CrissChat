@@ -12,6 +12,10 @@
   align-items: center;
 }
 
+.signup__page {
+  padding-top: 30px;
+}
+
 /* =========================================================
    LEFT COLUMN (ILLUSTRATION / CONTENT)
    ========================================================= */
@@ -66,6 +70,11 @@
   gap: 1.3rem;
 }
 
+.signup__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 .login__options {
   display: flex;
   align-items: center;
@@ -155,6 +164,37 @@
 .link-clean:focus {
   color: var(--color-cool-end);
   text-decoration: underline;
+}
+
+/* =========================================================
+   SIGNUP PAGE
+   ========================================================= */
+
+.signup__profile-picture {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin: 0 auto;
+  position: relative;
+}
+
+.profile-picture {
+  width: 80px;
+  height: 80px;
+  border: 2px solid var(--color-cool-start);
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.add-picture-icon {
+  position: absolute;
+  bottom: 0;
+  right: 10px;
+  color: var(--color-cool-start);
+  background: #ffffff;
+  cursor: pointer;
+  border-radius: 50%;
+  font-size: 1.5rem;
 }
 
 /* =========================================================
