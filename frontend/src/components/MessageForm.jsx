@@ -1,5 +1,6 @@
 import React from 'react'
 import { Form, Row, Col, Button } from 'react-bootstrap'
+import '../styles/MessajeForm.css'
 
 function MessageForm() {
 
