@@ -9,7 +9,7 @@ function MessageForm() {
   }
 
   return (
-    <div>
+    <div className='container__chat'>
       <div className="message__output"></div>
         <Form  onSubmit={handleSubmit}>
         <Row>
@@ -21,7 +21,7 @@ function MessageForm() {
           <Col md={1}>
             <Button variant='primary' type="submit" style={{width: "100%", backgroundColor: "var(--color-primary)"}}>
               <i className='fas fa-paper-plane'></i>
-              Send
+              
               </Button>
           </Col>
         </Row>

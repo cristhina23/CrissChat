@@ -8,10 +8,10 @@ function Chat() {
     <div>
       <Container>
         <Row>
-          <Col md={4}>
+          <Col md={3}>
             <Sidebar />
           </Col>
-          <Col md={8}>
+          <Col md={9}>
             <MessageForm />
           </Col>
         </Row>

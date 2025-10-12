@@ -1,16 +1,29 @@
 import React, { useState }  from "react";
 import { Col, Container, Row, Button, Form, Image } from "react-bootstrap";
 import {LinkContainer} from 'react-router-bootstrap';
+import { useLoginUserMutation } from '../services/appApi';
+import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
 import LiginImg from "../assets/login-img.png";
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  // eslint-disable-next-line no-unused-vars
+  const [loginUser, { isLoading, error }] = useLoginUserMutation();
+  const navigate = useNavigate();
 
   function handleLogin(e) {
     e.preventDefault();
     console.log(email, password);
+    // login the user
+    loginUser({ email, password }).then(({ data }) => {
+      if (data?.user) {
+        console.log(data);
+    
+        navigate("/chat");
+      }
+    })
   }
 
   return (

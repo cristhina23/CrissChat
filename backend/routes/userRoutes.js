@@ -7,7 +7,14 @@ const {
 } = require('../controllers/userCtrl');
 
 
-router.post('/', asyncHandler(createUser));
-router.post('/login', asyncHandler(handleLogin));
+router.post('/',
+  /* #swagger.tags = ['Users']
+   #swagger.description = 'Create new user' */
+  asyncHandler(createUser));
+
+router.post('/login', 
+  /* #swagger.tags = ['Users']
+   #swagger.description = 'Login user' */
+  asyncHandler(handleLogin));
   
   module.exports = router;

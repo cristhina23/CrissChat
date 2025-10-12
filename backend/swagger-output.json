@@ -12,9 +12,22 @@
     "https"
   ],
   "paths": {
+    "/": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/users/": {
       "post": {
-        "description": "",
+        "tags": [
+          "Users"
+        ],
+        "description": "Create new user",
         "parameters": [
           {
             "name": "body",
@@ -26,6 +39,9 @@
                   "example": "any"
                 },
                 "password": {
+                  "example": "any"
+                },
+                "confirmPassword": {
                   "example": "any"
                 },
                 "picture": {
@@ -47,7 +63,10 @@
     },
     "/users/login": {
       "post": {
-        "description": "",
+        "tags": [
+          "Users"
+        ],
+        "description": "Login user",
         "parameters": [
           {
             "name": "body",

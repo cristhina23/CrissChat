@@ -1,6 +1,36 @@
-.message-output {
-  height: 80%;
+.container__chat {
+  height: 100vh; /* toda la pantalla */
+  display: flex;
+  flex-direction: column;
+}
+
+.message__output {
+  height: 80% !important;
+  min-height:  80% !important;
+  padding: 10px;
   overflow-y: scroll;
   border: 1px solid #ccc;
   margin-bottom: 20px;
+}
+
+.message__output::-webkit-scrollbar {
+  width: 10px;
+}
+
+.message__output::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.message__output::-webkit-scrollbar-thumb {
+  background: var(--gradient-warm);
+  border-radius: 10px;
+}
+
+.message__output::-webkit-scrollbar-thumb:hover {
+  filter: brightness(1.1);
+}
+.message__output {
+  scrollbar-width: thin;
+  scrollbar-color: #FEAC0C #f1f1f1; /* thumb y track */
 }

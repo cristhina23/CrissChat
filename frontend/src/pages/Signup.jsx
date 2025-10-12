@@ -3,7 +3,7 @@ import { Col, Container, Row, Button, Form, Image } from "react-bootstrap";
 import {LinkContainer} from 'react-router-bootstrap';
 import SignupImg from "../assets/signup-img.png";
 import DefaultImg from "../assets/default-profile-img.png";
-
+import { useSignupUserMutation } from '../services/appApi';
 import "../styles/Login.css";
 
 
@@ -17,6 +17,8 @@ function Signup() {
   const [image, setImage] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  // eslint-disable-next-line no-unused-vars
+  const [signupUser, { isLoading, error }] = useSignupUserMutation();
 
   const validateImage = (e) => {
     const file = e.target.files[0];
@@ -58,6 +60,12 @@ function Signup() {
     console.log(url);
 
     // signup the user
+    signupUser({ email, password, confirmPassword, picture: url }).then(({ data }) => {
+      if (data) {
+        console.log(data);
+      }
+    })
+
   }
 
 
