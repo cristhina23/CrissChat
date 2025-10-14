@@ -2,14 +2,10 @@ const express = require('express');
 const User = require('../models/User');
 
 const createUser = async (req, res) => {
- const { email, password, confirmPassword, picture } = req.body;
+ const { name,  email, password,  picture } = req.body;
 
-  if (!email || !password || !confirmPassword) {
+  if (!email || !password || !name) {
     return res.status(400).json({ message: 'Please enter all fields' });
-  }
-
-  if (password !== confirmPassword) {
-    return res.status(400).json({ message: 'Passwords do not match' });
   }
 
   const findUser = await User.findOne({ email: email.toLowerCase() });
@@ -17,11 +13,13 @@ const createUser = async (req, res) => {
     return res.status(400).json({ message: 'User already exists' });
   }
 
+
   
-  const user = await User.create({ email, password,  picture, status: 'online' });
+  const user = await User.create({ name, email, password,  picture, status: 'online' });
   
   const userResponse = {
       id: user._id,
+      name: user.name,
       email: user.email,
       picture: user.picture,
       status: user.status,
@@ -43,7 +41,7 @@ const handleLogin = async (req, res) => {
     // Buscar usuario e incluir la contraseña temporalmente
     const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'User not found, please register' });
     }
 
     // Comparar contraseña
@@ -62,6 +60,7 @@ const handleLogin = async (req, res) => {
     // Crear respuesta sin contraseña
     const userResponse = {
       id: user._id,
+      name: user.name,
       email: user.email,
       picture: user.picture,
       status: user.status,

@@ -3,6 +3,7 @@ import { Col, Container, Row } from 'react-bootstrap'
 import Sidebar from '../components/Sidebar'
 import MessageForm from '../components/MessageForm'
 
+
 function Chat() {
   return (
     <div>

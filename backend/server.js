@@ -32,9 +32,6 @@ app.get('/', (req, res) => {
   res.send('Welcome to CrissChat API');
 });
 
-app.get('/rooms', (req, res) => {
-  res.json(rooms);
-});
 
 // Funciones auxiliares para mensajes
 async function getLastMessagesFromRoom(room) {
@@ -70,6 +67,8 @@ const io = require('socket.io')(server, {
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
+  socket.join('general');
+
   socket.on('new_user', async () => {
     const members = await User.find();
     io.emit('new_user', members);
@@ -82,10 +81,26 @@ io.on('connection', (socket) => {
     socket.emit('room_messages', roomMessages);
   });
 
+  socket.on('message_room', async(room, content, sender, time, date) => {
+    console.log('Message received:', content);
+    const newMessage = await Message.create({content, from: sender.name, time, date, to: room });
+    let roomMessages = await getLastMessagesFromRoom(room);
+    roomMessages = sortRoomMessages(roomMessages);
+    // sending message to all users in the room
+    io.to(room).emit('room_messages', roomMessages);
+
+    socket.broadcast.emit('notifications', room);
+  })
+
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
   });
 });
+
+app.get('/rooms', (req, res) => {
+  res.json(rooms);
+});
+
 
 // Middleware de errores
 app.use(notFound);

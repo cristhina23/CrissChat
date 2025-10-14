@@ -3,6 +3,10 @@ const { isEmail } = require('validator');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, 'Please enter a name'],
+  },
   email: {
     type: String,
     required: [true, 'Please enter an email'],
@@ -27,6 +31,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['online', 'offline'],
     default: 'offline',
+  },
+  rooms: {
+    type: [String], // Array de nombres de salas
+    default: ['general'] // Al registrarse, automáticamente entra a 'general'
   },
 }, { timestamps: true });
 

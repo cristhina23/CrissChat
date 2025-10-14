@@ -5,7 +5,8 @@ import SignupImg from "../assets/signup-img.png";
 import DefaultImg from "../assets/default-profile-img.png";
 import { useSignupUserMutation } from '../services/appApi';
 import "../styles/Login.css";
-
+import io from 'socket.io-client';
+const socket = io('http://localhost:5000');
 
  
 
@@ -13,7 +14,7 @@ import "../styles/Login.css";
 function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
   const [image, setImage] = useState(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -54,17 +55,27 @@ function Signup() {
     // saving the image
     e.preventDefault();
     if (!image) {
-      return alert("Please select an image");
-    }
-    const url = await uploadImage(image);
-    console.log(url);
+    return alert("Please select an image");
+  }
 
-    // signup the user
-    signupUser({ email, password, confirmPassword, picture: url }).then(({ data }) => {
-      if (data) {
-        console.log(data);
-      }
-    })
+  const url = await uploadImage(); // ya usa image del estado
+  if (!url) return; // si falla la subida
+
+  try {
+    const result = await signupUser({ name, email, password, picture: url }).unwrap();
+    console.log('User registered:', result);
+
+    // Unirse automáticamente a la sala 'general'
+    socket.emit('join_room', 'general');
+    socket.emit('new_user'); // para actualizar la lista de miembros en la UI
+
+    // Redirigir a la página de chat
+    window.location.href = '/login';
+
+  } catch (err) {
+    console.error(err);
+    alert(err.response?.data?.message || 'Signup failed');
+  }
 
   }
 
@@ -94,20 +105,31 @@ function Signup() {
                  <input type="file" id="image-upload" hidden accept='image/png, image/jpeg ' onChange={validateImage} />
               </div>
 
+              <Form.Group className="mb-3" controlId="formBasiName">
+                <Form.Label className="w500">Name</Form.Label>
+                <Form.Control
+                  type="text"
+                  placeholder="Jhon Doe"
+                  aria-required="true"
+                  aria-label="name"
+                  value={name}
+                  required
+                 onChange={(e) => setName(e.target.value)}
+                />
+                
+              </Form.Group>
+
               <Form.Group className="mb-3" controlId="formBasicEmail">
-                <Form.Label className="w500">Email address</Form.Label>
+                <Form.Label className="w500">Email</Form.Label>
                 <Form.Control
                   type="email"
-                  placeholder="email@example.com"
+                  placeholder="example@example.com"
                   aria-required="true"
                   aria-label="email"
                   value={email}
                   required
-                 onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                 />
-                <Form.Text className="text-muted">
-                  Please enter a valid email.
-                </Form.Text>
               </Form.Group>
 
               <Form.Group className="mb-3" controlId="formBasicPassword">
@@ -125,19 +147,7 @@ function Signup() {
                   The password must be at least 8 characters.
                 </Form.Text>
               </Form.Group>
-              <Form.Group className="mb-3" controlId="formBasicConfirmPassword">
-                <Form.Label className="w500"> Confirm Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  placeholder="******"
-                  aria-required="true"
-                  aria-label="confirm-password"
-                  value={confirmPassword}
-                  required
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-                
-              </Form.Group>
+              
 
               <div className="login__options d-flex justify-content-between align-items-center mb-3">
                 <div className="form-check d-flex align-items-center gap-2">
