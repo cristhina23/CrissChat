@@ -5,6 +5,7 @@ import { useLoginUserMutation } from '../services/appApi';
 import { useNavigate } from "react-router-dom";
 import "../styles/Login.css";
 import LiginImg from "../assets/login-img.png";
+import { AppContext } from "../context/appContext";
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -12,14 +13,14 @@ function Login() {
   // eslint-disable-next-line no-unused-vars
   const [loginUser, { isLoading, error }] = useLoginUserMutation();
   const navigate = useNavigate();
+  const { socket } = useContext(AppContext);
 
   function handleLogin(e) {
     e.preventDefault();
-    console.log(email, password);
     // login the user
     loginUser({ email, password }).then(({ data }) => {
       if (data?.user) {
-        console.log(data);
+        socket.emit('new_user');
     
         navigate("/chat");
       }
@@ -139,5 +140,6 @@ function Login() {
     </div>
   );
 }
+import { useContext } from "react";
 
 export default Login;

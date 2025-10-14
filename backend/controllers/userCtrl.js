@@ -33,10 +33,9 @@ const createUser = async (req, res) => {
 }
 
 const handleLogin = async (req, res) => {
-  
+  try {
     const { email, password } = req.body;
 
-    // Validar campos
     if (!email || !password) {
       return res.status(400).json({ message: 'Please enter both email and password' });
     }
@@ -57,6 +56,9 @@ const handleLogin = async (req, res) => {
     user.status = 'online';
     await user.save();
 
+    // Eliminar password antes de enviar
+    user.password = undefined;
+
     // Crear respuesta sin contraseña
     const userResponse = {
       id: user._id,
@@ -69,8 +71,12 @@ const handleLogin = async (req, res) => {
       message: 'Login successful',
       user: userResponse,
     });
-
+  } catch (err) {
+    console.error('Login error:', err);
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
 };
+
 
 
 module.exports = { createUser, handleLogin };

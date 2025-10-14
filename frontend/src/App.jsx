@@ -6,12 +6,22 @@ import Login from './pages/Login.jsx'
 import Signup from './pages/Signup.jsx'
 import Chat from './pages/Chat.jsx'
 import { useSelector } from 'react-redux'
+import { useState } from 'react'
+import { AppContext, socket } from './context/appContext.js'
 
 function App() {
   const user = useSelector((state) => state.user);
+  const [rooms, setRooms] = useState([]);
+  const [currentRoom, setCurrentRoom] = useState([]);
+  const [members, setMembers] = useState([]);
+  const [messages, setMessages] = useState([]);
+  const [privateMemberMsg, setPrivateMemberMsg] = useState({});
+  const [newMessages, setNewMessages] = useState({})
+
 
   return (
     <>
+    <AppContext.Provider value={{ socket, rooms, setRooms, currentRoom, setCurrentRoom, members, setMembers, messages, setMessages, privateMemberMsg, setPrivateMemberMsg, newMessages, setNewMessages }}>
       <BrowserRouter>
       <Navigation />
       <main id="main-content">
@@ -29,6 +39,7 @@ function App() {
         </Routes>
       </main>
       </BrowserRouter>
+      </AppContext.Provider>
     </>
   )
 }

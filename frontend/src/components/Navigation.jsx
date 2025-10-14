@@ -7,6 +7,8 @@ import { useSelector } from 'react-redux';
 import favicon from "/src/assets/favicon-96x96.png";
 import { Button } from 'react-bootstrap';
 import { useLogoutUserMutation } from '../services/appApi';
+import DefaultImg from "../assets/default-profile-img.png";
+
 
 function Navigation() {
   const user = useSelector((state) => state.user);
@@ -42,7 +44,11 @@ function Navigation() {
             </LinkContainer>
             <NavDropdown title={
               <>
-                <img src={user?.user?.picture} alt="profile image" style={{width: "30px", height: "30px", marginRight: 10, borderRadius: "50%", objectFit: "cover"}} />
+                {user ? (
+                  <img src={user?.picture} alt="" style={{ width: "30px", height: "30px", borderRadius: "50%", marginRight: "10px" }} />
+                ) : (
+                  <img src={DefaultImg} alt="" style={{ width: "30px", height: "30px", borderRadius: "50%", marginRight: "10px" }} />
+                )}
                 Menu
               </>
             } id="basic-nav-dropdown">
