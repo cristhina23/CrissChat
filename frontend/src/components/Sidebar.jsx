@@ -158,47 +158,55 @@ function Sidebar() {
 
       <h2>Members</h2>
       <ListGroup>
-        {sortedMembers.map((member) => (
-          <ListGroup.Item
-            key={member._id}
-            className="d-flex justify-content-between align-items-center"
-            active={privateMemberMsg && String(privateMemberMsg._id) === String(member._id)}
-            onClick={() => handlePrivateMemberMsg(member)}
-            disabled={String(member._id) === String(user.id)}
-            style={{ cursor: "pointer" }}
-          >
-            <div className="d-flex align-items-center">
-              {member.picture && (
-                <img
-                  src={member.picture}
-                  alt={member.name}
-                  style={{
-                    width: "35px",
-                    height: "35px",
-                    borderRadius: "50%",
-                    marginRight: "8px",
-                    cursor: "pointer",
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleViewProfile(member);
-                  }}
-                />
-              )}
-              <span>{member.name || member.email}</span>
-              {String(member._id) === String(user.id) && " (You)"}
-            </div>
+  {sortedMembers.map((member) => (
+    <ListGroup.Item
+      key={member._id}
+      className="d-flex justify-content-between align-items-center"
+      active={privateMemberMsg && String(privateMemberMsg._id) === String(member._id)}
+      onClick={() => handlePrivateMemberMsg(member)}
+      disabled={String(member._id) === String(user.id)}
+      style={{ cursor: "pointer" }}
+    >
+      <div className="d-flex align-items-center">
+        {member.picture && (
+          <img
+            src={member.picture}
+            alt={member.name}
+            style={{
+              width: "35px",
+              height: "35px",
+              borderRadius: "50%",
+              marginRight: "8px",
+              cursor: "pointer",
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleViewProfile(member);
+            }}
+          />
+        )}
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          <div>
+            <span>{member.name || member.email}</span>{" "}
+            {String(member._id) === String(user.id) && <span style={{marginLeft: "5px"}}>(You)</span>}
+          </div>
+          <small className={member.status === "online" ? "text-success" : "text-muted"}>
+            {member.status}
+          </small>
+        </div>
+      </div>
 
-            {/* 🔔 Notificaciones para chats privados */}
-            {user?.newMessages?.[orderIds(user.id, member._id)] &&
-              privateMemberMsg?._id !== member._id && (
-                <span className="badge rounded-pill bg-danger">
-                  {user.newMessages[orderIds(user.id, member._id)]}
-                </span>
-              )}
-          </ListGroup.Item>
-        ))}
-      </ListGroup>
+      {/* 🔔 Notificaciones para chats privados */}
+      {user?.newMessages?.[orderIds(user.id, member._id)] &&
+        privateMemberMsg?._id !== member._id && (
+          <span className="badge rounded-pill bg-danger">
+            {user.newMessages[orderIds(user.id, member._id)]}
+          </span>
+      )}
+    </ListGroup.Item>
+  ))}
+</ListGroup>
+
 
       {/* Modal de perfil */}
       <Modal show={showProfile} onHide={() => setShowProfile(false)}>
