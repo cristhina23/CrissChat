@@ -1,8 +1,8 @@
-import React, { useContext, useEffect, useMemo } from "react";
-import { ListGroup } from "react-bootstrap";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { ListGroup, Modal } from "react-bootstrap";
 import { useSelector } from "react-redux";
 import { AppContext } from "../context/appContext";
-import '../styles/Sidebar.css'
+import '../styles/Sidebar.css';
 
 function Sidebar() {
   const user = useSelector((state) => state.user);
@@ -15,8 +15,17 @@ function Sidebar() {
     setPrivateMemberMsg,
     rooms = [],
     currentRoom,
-    privateMemberMessage,
+    privateMemberMsg,
+    messages = []
   } = useContext(AppContext);
+
+  const [selectedMember, setSelectedMember] = useState(null);
+  const [showProfile, setShowProfile] = useState(false);
+
+  function handleViewProfile(member) {
+    setSelectedMember(member);
+    setShowProfile(true);
+  }
 
   function joinRoom(room, isPublic = true) {
     if (!user) return alert("Please login");
@@ -37,30 +46,39 @@ function Sidebar() {
   useEffect(() => {
     if (!user) return;
 
-    // Join default room
     setCurrentRoom("general");
     getRooms();
     socket.emit("join_room", "general");
-    socket.emit("new_user"); // notify backend
+    socket.emit("new_user");
 
-    // listen for new users list
-    socket.on("new_user", (payload) => {
-      console.log("Members from server:", payload);
-      setMembers(payload);
-    });
+    socket.on("new_user", (payload) => setMembers(payload));
 
     return () => socket.off("new_user");
   }, [user, socket, setMembers, setCurrentRoom, setRooms]);
 
-  // Ordenar miembros (el usuario actual primero)
+  // Ordenar miembros según mensaje más reciente
   const sortedMembers = useMemo(() => {
     if (!Array.isArray(members) || !user) return members;
 
-    const me = members.find((m) => String(m._id) === String(user.id));
-    if (!me) return [...members];
+    const me = members.find(m => String(m._id) === String(user.id));
+    const otherMembers = members.filter(m => String(m._id) !== String(user.id));
 
-    return [me, ...members.filter((m) => String(m._id) !== String(user.id))];
-  }, [members, user]);
+    // Para cada miembro, obtener timestamp del último mensaje
+    const membersWithLastMsg = otherMembers.map(member => {
+      const msgs = messages.filter(
+        msg =>
+          (msg.from === user.id && msg.to === member._id) ||
+          (msg.from === member._id && msg.to === user.id)
+      );
+      const lastMsgTime = msgs.length > 0 ? Math.max(...msgs.map(m => new Date(m.createdAt).getTime())) : 0;
+      return { ...member, lastMsgTime };
+    });
+
+    // Orden descendente por lastMsgTime (más recientes arriba)
+    membersWithLastMsg.sort((a, b) => b.lastMsgTime - a.lastMsgTime);
+
+    return me ? [me, ...membersWithLastMsg] : membersWithLastMsg;
+  }, [members, user, messages]);
 
   function orderIds(id1, id2) {
     return id1 > id2 ? id1 + "-" + id2 : id2 + "-" + id1;
@@ -94,23 +112,66 @@ function Sidebar() {
 
       <h2>Members</h2>
       <ListGroup>
-        {sortedMembers.map((member) => (
+        {sortedMembers.map(member => (
           <ListGroup.Item
             key={member._id}
-            style={{ cursor: "pointer" }}
-            active={
-              privateMemberMessage &&
-              String(privateMemberMessage._id) === String(member._id)
-            }
+            className="d-flex justify-content-between align-items-center"
+            active={privateMemberMsg && String(privateMemberMsg._id) === String(member._id)}
             onClick={() => handlePrivateMemberMsg(member)}
-            disable={String(member._id) === String(user.id)}
+            disabled={String(member._id) === String(user.id)}
+            style={{ cursor: "pointer" }}
           >
-            {member.name || member.email}
-            {String(member._id) === String(user.id) && " (You)"}
+            <div className="d-flex align-items-center">
+              {member.picture && (
+                <img
+                  src={member.picture}
+                  alt={member.name}
+                  style={{
+                    width: '35px',
+                    height: '35px',
+                    borderRadius: '50%',
+                    marginRight: '8px',
+                    cursor: 'pointer'
+                  }}
+                  onClick={e => {
+                    e.stopPropagation();
+                    handleViewProfile(member);
+                  }}
+                />
+              )}
+              {member.name || member.email}
+              {String(member._id) === String(user.id) && " (You)"}
+            </div>
+
           </ListGroup.Item>
         ))}
       </ListGroup>
 
+      {/* Modal de perfil */}
+      <Modal show={showProfile} onHide={() => setShowProfile(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Profile</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedMember && (
+            <div className="text-center">
+              <img
+                src={selectedMember.picture}
+                alt={selectedMember.name}
+                style={{
+                  width: '100px',
+                  height: '100px',
+                  borderRadius: '50%',
+                  marginBottom: '10px'
+                }}
+              />
+              <h5>{selectedMember.name}</h5>
+              <p>Status: {selectedMember.status || "Offline"}</p>
+              <p>Member since: {selectedMember.createdAt ? new Date(selectedMember.createdAt).toLocaleDateString() : "Unknown"}</p>
+            </div>
+          )}
+        </Modal.Body>
+      </Modal>
     </>
   );
 }
