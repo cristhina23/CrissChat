@@ -45,10 +45,22 @@ function MessageForm() {
   return (
     <div className="container__chat">
       <div className="message__output">
-        {!user && <div className="alert alert-danger">Login to start a conversation</div>}
-        {messages.map((msg, idx) => (
-          <div key={idx}>
-            <strong>{msg.from}:</strong> {msg.content}
+
+        {!user && (
+          <div className="alert alert-danger">Login to start a conversation</div>
+        )}
+
+        {user && 
+          messages.map(({_id: date, messagesByDate}, idx) => (
+          <div key={idx} >
+            <p className='alert alert-info text-center message_date_indicator'>{ date}</p>
+
+            {messagesByDate.map(({content, time, from: sender}, msgidx) => (
+              <div key={msgidx} className={sender === user._id ? 'message message_sent' : 'message message_received'}>
+                <p>{content}</p>
+                <small>{time}</small>
+              </div>
+            ))}
           </div>
         ))}
       </div>
