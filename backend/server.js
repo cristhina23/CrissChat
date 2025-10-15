@@ -52,7 +52,7 @@ function sortRoomMessages(messages) {
     let dateB = b._id.split('/');
     dateA = dateA[2] + dateA[0] + dateA[1];
     dateB = dateB[2] + dateB[0] + dateB[1];
-    return dateA < dateB ? 1 : -1;
+    return dateA > dateB ? 1 : -1;
   });
 }
 
@@ -94,7 +94,9 @@ io.on('connection', (socket) => {
     // sending message to all users in the room
     io.to(room).emit('room_messages', roomMessages);
 
-    socket.broadcast.emit('notifications', room);
+    socket.broadcast.emit("notifications", room);
+
+
   })
 
   socket.on('disconnect', () => {

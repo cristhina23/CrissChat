@@ -6,17 +6,18 @@ export const userSlice = createSlice({
   initialState: null,
   reducers: {
     addNotifications: (state, { payload }) => {
-      if (state?.notifications) {
-        state.notifications.push(payload);
+      if (!state.newMessages) {
+        state.newMessages = {};
+      }
+      if (state.newMessages[payload]) {
+        state.newMessages[payload] += 1;
       } else {
-        state.notifications = [payload];
+        state.newMessages[payload] = 1;
       }
     },
     resetNotifications: (state, { payload }) => {
-      if (state?.notifications) {
-        state.notifications = state.notifications.filter(
-          (n) => n.room !== payload
-        );
+      if (state.newMessages && state.newMessages[payload]) {
+        delete state.newMessages[payload];
       }
     },
   },
@@ -24,12 +25,12 @@ export const userSlice = createSlice({
     // save user after signup
     builder.addMatcher(
       appApi.endpoints.signupUser.matchFulfilled,
-      (state, { payload }) => payload.user
+      (state, { payload }) => ({ ...payload.user, newMessages: {} })
     );
     // save user after login
     builder.addMatcher(
       appApi.endpoints.loginUser.matchFulfilled,
-      (state, { payload }) => payload.user
+      (state, { payload }) => ({ ...payload.user, newMessages: payload.user.newMessages || {} })
     );
     // logout user
     builder.addMatcher(
@@ -37,6 +38,7 @@ export const userSlice = createSlice({
       () => null
     );
   },
+
 });
 
 export const { addNotifications, resetNotifications } = userSlice.actions;
