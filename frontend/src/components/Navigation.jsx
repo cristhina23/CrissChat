@@ -15,11 +15,25 @@ function Navigation() {
   const [logoutUser] = useLogoutUserMutation();
 
   const handleLogout = async (e) => {
-    e.preventDefault();
-    await logoutUser();
-    localStorage.removeItem("user");
-    window.location.replace('/');
-  }
+  e.preventDefault();
+  console.log("Logout button clicked ✅");
+
+  if (!user || !user.id) {
+      console.warn('No user in redux state');
+      return;
+    }
+
+    try {
+      const res = await logoutUser({ userId: user.id }).unwrap();
+      console.log('Logout response :', res);
+      // borrar persist store si usas redux-persist
+      localStorage.removeItem('persist:root');
+      window.location.replace('/');
+    } catch (err) {
+      console.error('Logout failed ', err);
+    }
+};
+
 
 
   return (

@@ -11,6 +11,7 @@ const swaggerUi = require('swagger-ui-express');
 const swaggerFile = require('./swagger-output.json');
 const User = require('./models/User');
 const Message = require('./models/Message');
+const expressAsyncHandler = require('express-async-handler');
 
 const app = express();
 
@@ -24,6 +25,9 @@ app.use(cors());
 
 // Swagger
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
+
+
+
 
 // Routes
 app.use('/users', userRoutes);
@@ -62,6 +66,7 @@ const io = require('socket.io')(server, {
     methods: ['GET', 'POST']
   }
 });
+app.set("io", io);
 
 // Eventos de Socket.IO
 io.on('connection', (socket) => {
@@ -100,6 +105,7 @@ io.on('connection', (socket) => {
 app.get('/rooms', (req, res) => {
   res.json(rooms);
 });
+
 
 
 // Middleware de errores

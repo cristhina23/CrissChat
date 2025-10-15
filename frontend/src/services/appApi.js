@@ -9,7 +9,7 @@ const appApi = createApi({
     // Create user
     signupUser: builder.mutation({
       query: (user) => ({
-        url: '/users',
+        url: 'users/signup',
         method: 'POST',
         body: user,
       }),
@@ -27,8 +27,8 @@ const appApi = createApi({
     // Logout user
     logoutUser: builder.mutation({
       query: (payload) => ({
-        url: '/logout',
-        method: 'DELETE',
+        url: 'users/logout',
+        method: 'POST',
         body: payload,
       }),
     }),
