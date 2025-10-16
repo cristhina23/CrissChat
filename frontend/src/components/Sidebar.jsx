@@ -39,7 +39,7 @@ function Sidebar() {
   function joinRoom(room, isPublic = true) {
     if (!user) return alert("Please login");
 
-    socket.emit("join_room", room, isPublic);
+    socket.emit("join_room", room);
     setCurrentRoom(room);
 
     if (isPublic) {
@@ -106,7 +106,7 @@ function Sidebar() {
       socket.off("new_user");
       socket.off("notifications");
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [user, socket]);
 
   // Ordenar miembros (último mensaje arriba)
