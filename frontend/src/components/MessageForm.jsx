@@ -12,10 +12,8 @@ function MessageForm() {
   function getFormattedDate() {
     const date = new Date();
     const year = date.getFullYear();
-    let month = (date.getMonth() + 1).toString();
-    month = month.length > 1 ? month : "0" + month;
-    let day = date.getDate().toString();
-    day = day.length > 1 ? day : "0" + day;
+    let month = (date.getMonth() + 1).toString().padStart(2, "0");
+    let day = date.getDate().toString().padStart(2, "0");
     return `${day}/${month}/${year}`;
   }
 
@@ -23,20 +21,27 @@ function MessageForm() {
 
   useEffect(() => {
     if (!socket) return;
+
     socket.off("room_messages").on("room_messages", (roomMessages) => {
-      console.log("Mensajes recibidos:", roomMessages);
-      setMessages(roomMessages);
-    });
-  }, [socket]);
+  if (roomMessages && Array.isArray(roomMessages)) {
+    setMessages(roomMessages);
+  }
+});
+
+
+    return () => socket.off("room_messages");
+  }, [socket, currentRoom, setMessages]);
 
   function handleSubmit(e) {
     e.preventDefault();
     if (!message) return;
+    if (!user || !user.id) return alert("User not found or not logged in");
+
     const today = new Date();
-    const minutes =
-      today.getMinutes() < 10 ? "0" + today.getMinutes() : today.getMinutes();
+    const minutes = today.getMinutes().toString().padStart(2, "0");
     const time = today.getHours() + ":" + minutes;
     const roomId = currentRoom;
+
     socket.emit("message_room", roomId, message, user.id, time, todayDate);
     setMessage("");
   }
@@ -51,25 +56,27 @@ function MessageForm() {
         )}
 
         {user &&
+          Array.isArray(messages) &&
           messages.map(({ _id: date, messagesByDate }, idx) => (
             <div key={idx}>
               <p className="alert alert-info text-center message_date_indicator">
                 {date}
               </p>
 
-              {messagesByDate.map(({ content, time, from: sender }, msgidx) => (
-                <div
-                  key={msgidx}
-                  className={
-                    sender === user.id
-                      ? "message message_sent"
-                      : "message message_received"
-                  }
-                >
-                  <p>{content}</p>
-                  <small>{time}</small>
-                </div>
-              ))}
+              {Array.isArray(messagesByDate) &&
+                messagesByDate.map(({ content, time, from: sender }, msgidx) => (
+                  <div
+                    key={msgidx}
+                    className={
+                      String(sender) === String(user.id)
+                        ? "message message_sent"
+                        : "message message_received"
+                    }
+                  >
+                    <p>{content}</p>
+                    <small className="message-time">{time }</small>
+                  </div>
+                ))}
             </div>
           ))}
       </div>

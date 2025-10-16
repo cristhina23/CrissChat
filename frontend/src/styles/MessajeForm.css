@@ -34,3 +34,27 @@
   scrollbar-width: thin;
   scrollbar-color: #FEAC0C #f1f1f1; /* thumb y track */
 }
+.message_content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.message_time {
+  font-size: 0.8rem;
+  color: #777;
+  white-space: nowrap;
+}
+
+.message_sent .message_content {
+  background-color: #d1ffd6;
+  border-radius: 10px;
+  padding: 6px 10px;
+}
+
+.message_received .message_content {
+  background-color: #f0f0f0;
+  border-radius: 10px;
+  padding: 6px 10px;
+}
