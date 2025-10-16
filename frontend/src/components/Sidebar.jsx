@@ -1,3 +1,4 @@
+// src/components/Sidebar.jsx
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { ListGroup, Modal } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
@@ -18,6 +19,8 @@ function Sidebar() {
     currentRoom,
     privateMemberMsg,
     messages = [],
+    newMessages = {},
+    setNewMessages, // <- usamos el setter del contexto para sincronizar badges en la UI
   } = useContext(AppContext);
 
   const dispatch = useDispatch();
@@ -43,9 +46,18 @@ function Sidebar() {
       setPrivateMemberMsg(null);
     }
 
+    // limpiar notificaciones de esa sala en redux y en contexto
     dispatch(resetNotifications(room));
+    if (setNewMessages) {
+      setNewMessages((prev = {}) => {
+        const copy = { ...prev };
+        delete copy[room];
+        return copy;
+      });
+    }
   }
 
+  // Obtener lista de salas públicas
   const getRooms = () => {
     fetch("http://localhost:5000/rooms")
       .then((res) => res.json())
@@ -54,45 +66,61 @@ function Sidebar() {
   };
 
   useEffect(() => {
-  if (!user || !socket) return;
+    if (!user || !socket) return;
 
-  if (!currentRoom) {
-    setCurrentRoom("general");
-    socket.emit("join_room", "general", true);
-  }
-
-  getRooms();
-  socket.emit("new_user");
-
-  socket.off("new_user").on("new_user", (payload) => {
-    try {
-      const sorted = Array.isArray(payload)
-        ? [...payload].sort((a, b) => {
-            if (a.status === "online" && b.status !== "online") return -1;
-            if (a.status !== "online" && b.status === "online") return 1;
-            return new Date(b.createdAt) - new Date(a.createdAt);
-          })
-        : [];
-      setMembers(sorted);
-    } catch (err) {
-      console.error("Error procesando new_user payload:", err);
-      setMembers(payload || []);
+    // Solo establecer "general" al inicio (no depende de currentRoom para evitar re-ejecuciones)
+    if (!currentRoom) {
+      setCurrentRoom("general");
+      socket.emit("join_room", "general", true);
     }
-  });
 
-  socket.off("notifications").on("notifications", (room) => {
-    if (room !== currentRoom) {
-      dispatch(addNotifications(room));
-    }
-  });
+    getRooms();
+    socket.emit("new_user");
 
-  return () => {
-    socket.off("new_user");
-    socket.off("notifications");
-  };
-}, [user, socket]); // 👈 solo depende de user y socket, no de currentRoom
+    // recibir lista de miembros y ordenar
+    socket.off("new_user").on("new_user", (payload) => {
+      try {
+        const sorted = Array.isArray(payload)
+          ? [...payload].sort((a, b) => {
+              if (a.status === "online" && b.status !== "online") return -1;
+              if (a.status !== "online" && b.status === "online") return 1;
+              return new Date(b.createdAt) - new Date(a.createdAt);
+            })
+          : [];
+        setMembers(sorted);
+      } catch (err) {
+        console.error("Error procesando new_user payload:", err);
+        setMembers(payload || []);
+      }
+    });
 
+    // notificaciones (server emite 'notifications' con room)
+    socket.off("notifications").on("notifications", (room) => {
+      // si no estamos en esa sala, aumentar notificación
+      if (room !== currentRoom) {
+        // actualizar redux (tu reducer maneja newMessages en user)
+        dispatch(addNotifications(room));
 
+        // actualizar AppContext.newMessages (inmediato para UI)
+        if (setNewMessages) {
+          setNewMessages((prev = {}) => {
+            const copy = { ...prev };
+            if (copy[room]) copy[room] = copy[room] + 1;
+            else copy[room] = 1;
+            return copy;
+          });
+        }
+      }
+    });
+
+    return () => {
+      socket.off("new_user");
+      socket.off("notifications");
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, socket]);
+
+  // Ordenar miembros (último mensaje arriba)
   const sortedMembers = useMemo(() => {
     if (!Array.isArray(members) || !user) return members;
 
@@ -107,9 +135,7 @@ function Sidebar() {
       );
       const lastMsgTime =
         msgs.length > 0
-          ? Math.max(
-              ...msgs.map((m) => (m.createdAt ? new Date(m.createdAt).getTime() : 0))
-            )
+          ? Math.max(...msgs.map((m) => (m.timestamp ? new Date(m.timestamp).getTime() : 0)))
           : 0;
       return { ...member, lastMsgTime };
     });
@@ -124,7 +150,16 @@ function Sidebar() {
     const roomId = orderIds(user.id, member._id);
     setPrivateMemberMsg(member);
     joinRoom(roomId, false);
+
+    // limpiar notifs de esta conversación tanto en redux como en contexto
     dispatch(resetNotifications(roomId));
+    if (setNewMessages) {
+      setNewMessages((prev = {}) => {
+        const copy = { ...prev };
+        delete copy[roomId];
+        return copy;
+      });
+    }
   }
 
   if (!user) return null;
@@ -142,11 +177,13 @@ function Sidebar() {
             style={{ cursor: "pointer" }}
           >
             <span>{room}</span>
-            {user?.newMessages?.[room] && currentRoom !== room && (
+            {/* badge: consultamos primero AppContext.newMessages para una respuesta instantánea,
+                si no existe mostramos lo que haya en user.newMessages */}
+            {currentRoom !== room && (newMessages?.[room] || user?.newMessages?.[room]) ? (
               <span className="badge rounded-pill bg-primary ms-2">
-                {user.newMessages[room]}
+                {newMessages?.[room] ?? user?.newMessages?.[room]}
               </span>
-            )}
+            ) : null}
           </ListGroup.Item>
         ))}
       </ListGroup>
@@ -157,9 +194,7 @@ function Sidebar() {
           <ListGroup.Item
             key={member._id}
             className="d-flex justify-content-between align-items-center"
-            active={
-              privateMemberMsg && String(privateMemberMsg._id) === String(member._id)
-            }
+            active={privateMemberMsg && String(privateMemberMsg._id) === String(member._id)}
             onClick={() => handlePrivateMemberMsg(member)}
             disabled={String(member._id) === String(user.id)}
             style={{ cursor: "pointer" }}
@@ -201,26 +236,27 @@ function Sidebar() {
                       width: "8px",
                       height: "8px",
                       borderRadius: "50%",
-                      backgroundColor:
-                        member.status === "online" ? "green" : "gray",
+                      backgroundColor: member.status === "online" ? "green" : "gray",
                       marginRight: "5px",
                     }}
-                  ></span>
+                  />
                   {member.status}
                 </small>
               </div>
             </div>
 
-            {user?.newMessages?.[orderIds(user.id, member._id)] &&
+            {/* badge para notificaciones privadas: preferimos AppContext.newMessages si existe */}
+            { (newMessages?.[orderIds(user.id, member._id)] || user?.newMessages?.[orderIds(user.id, member._id)]) &&
               privateMemberMsg?._id !== member._id && (
                 <span className="badge rounded-pill bg-danger">
-                  {user.newMessages[orderIds(user.id, member._id)]}
+                  {newMessages?.[orderIds(user.id, member._id)] ?? user?.newMessages?.[orderIds(user.id, member._id)]}
                 </span>
               )}
           </ListGroup.Item>
         ))}
       </ListGroup>
 
+      {/* Modal de perfil */}
       <Modal show={showProfile} onHide={() => setShowProfile(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Profile</Modal.Title>
@@ -242,9 +278,7 @@ function Sidebar() {
               <p>Status: {selectedMember.status || "Offline"}</p>
               <p>
                 Member since:{" "}
-                {selectedMember.createdAt
-                  ? new Date(selectedMember.createdAt).toLocaleDateString()
-                  : "Unknown"}
+                {selectedMember.createdAt ? new Date(selectedMember.createdAt).toLocaleDateString() : "Unknown"}
               </p>
             </div>
           )}

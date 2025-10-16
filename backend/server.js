@@ -101,7 +101,7 @@ io.on('connection', (socket) => {
       io.to(room).emit('room_messages', roomMessages);
 
       // 🔕 Enviamos notificación solo a quienes NO están en la sala
-      socket.broadcast.emit('notifications', { room });
+      socket.broadcast.emit('notifications', room );
     } catch (error) {
       console.error('❌ Error saving message:', error);
     }
