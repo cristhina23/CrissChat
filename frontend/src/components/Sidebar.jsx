@@ -95,23 +95,12 @@ function Sidebar() {
     });
 
     // notificaciones (server emite 'notifications' con room)
-    socket.off("notifications").on("notifications", (room) => {
-      // si no estamos en esa sala, aumentar notificación
-      if (room !== currentRoom) {
-        // actualizar redux (tu reducer maneja newMessages en user)
-        dispatch(addNotifications(room));
-
-        // actualizar AppContext.newMessages (inmediato para UI)
-        if (setNewMessages) {
-          setNewMessages((prev = {}) => {
-            const copy = { ...prev };
-            if (copy[room]) copy[room] = copy[room] + 1;
-            else copy[room] = 1;
-            return copy;
-          });
-        }
-      }
-    });
+    socket.off("notifications").on("notifications", (data) => {
+  const room = data.room || data;
+  if (room && room !== currentRoom) {
+    dispatch(addNotifications(room));
+  }
+});
 
     return () => {
       socket.off("new_user");

@@ -12,8 +12,8 @@ function MessageForm() {
   function getFormattedDate() {
     const date = new Date();
     const year = date.getFullYear();
-    let month = (date.getMonth() + 1).toString().padStart(2, "0");
-    let day = date.getDate().toString().padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
     return `${day}/${month}/${year}`;
   }
 
@@ -22,27 +22,29 @@ function MessageForm() {
   useEffect(() => {
     if (!socket) return;
 
+    // ✅ Escuchar mensajes de sala
     socket.off("room_messages").on("room_messages", (roomMessages) => {
-  if (roomMessages && Array.isArray(roomMessages)) {
-    setMessages(roomMessages);
-  }
-});
-
+      // El servidor envía solo mensajes del room actual
+      if (Array.isArray(roomMessages)) {
+        setMessages(roomMessages);
+      } else {
+        console.warn("Formato inesperado en room_messages:", roomMessages);
+      }
+    });
 
     return () => socket.off("room_messages");
   }, [socket, currentRoom, setMessages]);
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (!message) return;
+    if (!message.trim()) return;
     if (!user || !user.id) return alert("User not found or not logged in");
 
-    const today = new Date();
-    const minutes = today.getMinutes().toString().padStart(2, "0");
-    const time = today.getHours() + ":" + minutes;
-    const roomId = currentRoom;
+    const date = new Date();
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+    const time = date.getHours() + ":" + minutes;
 
-    socket.emit("message_room", roomId, message, user.id, time, todayDate);
+    socket.emit("message_room", currentRoom, message, user.id, time, todayDate);
     setMessage("");
   }
 
@@ -74,7 +76,7 @@ function MessageForm() {
                     }
                   >
                     <p>{content}</p>
-                    <small className="message-time">{time }</small>
+                    <small className="message-time">{time}</small>
                   </div>
                 ))}
             </div>
