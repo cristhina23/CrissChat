@@ -30,12 +30,10 @@ function Sidebar() {
     setShowProfile(true);
   }
 
-  // Crear ID único para cada chat privado
   function orderIds(id1, id2) {
     return id1 > id2 ? id1 + "-" + id2 : id2 + "-" + id1;
   }
 
-  // Unirse a sala (pública o privada)
   function joinRoom(room, isPublic = true) {
     if (!user) return alert("Please login");
 
@@ -46,11 +44,9 @@ function Sidebar() {
       setPrivateMemberMsg(null);
     }
 
-    // limpiar notificaciones de esa sala en redux
     dispatch(resetNotifications(room));
   }
 
-  // Obtener lista de salas públicas
   const getRooms = () => {
     fetch("http://localhost:5000/rooms")
       .then((res) => res.json())
@@ -58,11 +54,9 @@ function Sidebar() {
       .catch((err) => console.error("Error fetching rooms:", err));
   };
 
-  // Escuchar usuarios conectados y notificaciones
   useEffect(() => {
     if (!user || !socket) return;
 
-    // Solo establecer "general" al inicio
     if (!currentRoom) {
       setCurrentRoom("general");
       socket.emit("join_room", "general", true);
@@ -71,14 +65,17 @@ function Sidebar() {
     getRooms();
     socket.emit("new_user");
 
-    socket.on("new_user", (payload) => {
-      setMembers(payload);
+    socket.off("new_user").on("new_user", (payload) => {
+      console.log("👥 Usuarios actualizados:", payload);
+      const sorted = [...payload].sort((a, b) => {
+        if (a.status === "online" && b.status !== "online") return -1;
+        if (a.status !== "online" && b.status === "online") return 1;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+      setMembers(sorted);
     });
 
-    // 🔥 Escuchar evento de notificación desde el servidor
     socket.off("notifications").on("notifications", (room) => {
-      console.log("🔔 Notification received for room:", room);
-      // Solo sumar notificación si no estamos en esa sala actualmente
       if (room !== currentRoom) {
         dispatch(addNotifications(room));
       }
@@ -88,10 +85,8 @@ function Sidebar() {
       socket.off("new_user");
       socket.off("notifications");
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, socket, currentRoom]);
 
-  // Ordenar miembros (último mensaje arriba)
   const sortedMembers = useMemo(() => {
     if (!Array.isArray(members) || !user) return members;
 
@@ -120,13 +115,11 @@ function Sidebar() {
     return me ? [me, ...membersWithLastMsg] : membersWithLastMsg;
   }, [members, user, messages]);
 
-  // Abrir chat privado
   function handlePrivateMemberMsg(member) {
     if (!user) return;
     const roomId = orderIds(user.id, member._id);
     setPrivateMemberMsg(member);
     joinRoom(roomId, false);
-    // limpiar notificaciones de esta conversación
     dispatch(resetNotifications(roomId));
   }
 
@@ -145,70 +138,83 @@ function Sidebar() {
             style={{ cursor: "pointer" }}
           >
             <span>{room}</span>
-            {/* 🔔 Mostrar badge solo si hay notificaciones pendientes */}
             {user?.newMessages?.[room] && currentRoom !== room && (
               <span className="badge rounded-pill bg-primary ms-2">
                 {user.newMessages[room]}
               </span>
             )}
-            
           </ListGroup.Item>
         ))}
       </ListGroup>
 
       <h2>Members</h2>
       <ListGroup>
-  {sortedMembers.map((member) => (
-    <ListGroup.Item
-      key={member._id}
-      className="d-flex justify-content-between align-items-center"
-      active={privateMemberMsg && String(privateMemberMsg._id) === String(member._id)}
-      onClick={() => handlePrivateMemberMsg(member)}
-      disabled={String(member._id) === String(user.id)}
-      style={{ cursor: "pointer" }}
-    >
-      <div className="d-flex align-items-center">
-        {member.picture && (
-          <img
-            src={member.picture}
-            alt={member.name}
-            style={{
-              width: "35px",
-              height: "35px",
-              borderRadius: "50%",
-              marginRight: "8px",
-              cursor: "pointer",
-            }}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleViewProfile(member);
-            }}
-          />
-        )}
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <div>
-            <span>{member.name || member.email}</span>{" "}
-            {String(member._id) === String(user.id) && <span style={{marginLeft: "5px"}}>(You)</span>}
-          </div>
-          <small className={member.status === "online" ? "text-success" : "text-muted"}>
-            {member.status}
-          </small>
-        </div>
-      </div>
+        {sortedMembers.map((member) => (
+          <ListGroup.Item
+            key={member._id}
+            className="d-flex justify-content-between align-items-center"
+            active={privateMemberMsg && String(privateMemberMsg._id) === String(member._id)}
+            onClick={() => handlePrivateMemberMsg(member)}
+            disabled={String(member._id) === String(user.id)}
+            style={{ cursor: "pointer" }}
+          >
+            <div className="d-flex align-items-center">
+              {member.picture && (
+                <img
+                  src={member.picture}
+                  alt={member.name}
+                  style={{
+                    width: "35px",
+                    height: "35px",
+                    borderRadius: "50%",
+                    marginRight: "8px",
+                    cursor: "pointer",
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleViewProfile(member);
+                  }}
+                />
+              )}
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <div>
+                  <span>{member.name || member.email}</span>{" "}
+                  {String(member._id) === String(user.id) && (
+                    <span style={{ marginLeft: "5px" }}>(You)</span>
+                  )}
+                </div>
+                <small
+                  className="d-flex align-items-center"
+                  style={{
+                    color: member.status === "online" ? "green" : "gray",
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-block",
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      backgroundColor:
+                        member.status === "online" ? "green" : "gray",
+                      marginRight: "5px",
+                    }}
+                  ></span>
+                  {member.status}
+                </small>
+              </div>
+            </div>
 
-      {/* 🔔 Notificaciones para chats privados */}
-      {user?.newMessages?.[orderIds(user.id, member._id)] &&
-        privateMemberMsg?._id !== member._id && (
-          <span className="badge rounded-pill bg-danger">
-            {user.newMessages[orderIds(user.id, member._id)]}
-          </span>
-      )}
-    </ListGroup.Item>
-  ))}
-</ListGroup>
+            {user?.newMessages?.[orderIds(user.id, member._id)] &&
+              privateMemberMsg?._id !== member._id && (
+                <span className="badge rounded-pill bg-danger">
+                  {user.newMessages[orderIds(user.id, member._id)]}
+                </span>
+              )}
+          </ListGroup.Item>
+        ))}
+      </ListGroup>
 
-
-      {/* Modal de perfil */}
       <Modal show={showProfile} onHide={() => setShowProfile(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Profile</Modal.Title>
