@@ -1,9 +1,10 @@
 import React, { useState, useContext } from 'react'
 import { Button, Col, Form, Row } from 'react-bootstrap'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { BsFillSendFill } from "react-icons/bs";
 import '../styles/MessajeForm.css'
 import  { AppContext } from '../context/appContext'
+import { addNotifications, resetNotifications } from '../features/userSlice';
 
 
 
@@ -44,7 +45,25 @@ function MessageForm() {
 
   return (
     <div className='container__chat'>
-      <div className='message__output'>{!user && <div className='alert alert-danger'> Please login to start a conversation</div>} </div>
+      <div className='message__output'>
+        {!user && <div className='alert alert-danger'> Please login to start a conversation</div>} 
+        
+        {user && messages.map(({_id: date, messagesByDate} , idx) => (
+          <div key={idx}>
+            <p className='alert alert-info text-center message-date-indicator'>{date}</p>
+            {messagesByDate.map(({content, time, from}, msgIdx) => (
+              <div key={msgIdx} className={`message ${user._id === user._id ? 'message-sent' : 'message-received'}`}>
+                <div className='message-content'>
+                  <p>{content}</p>
+                  <small className='small'>{time}</small>
+                </div>
+              </div>
+            ))}
+           </div>
+            
+        ))}
+        
+        </div>
       <Form onSubmit={handleSubmit}>
         <Row>
           <Col md={11}>

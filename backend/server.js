@@ -88,7 +88,7 @@ io.on('connection', (socket) => {
   socket.on('message_room', async(room, content, sender, date, time) => {
     console.log('new message: ', content);
     // Guardar primero
-    const newMessage = new Message({ content, from: sender, to: room, date, time });
+    const newMessage = new Message({ content, from: sender._id, to: room, date, time });
     await newMessage.save();
 
     // Luego obtener todos los mensajes actualizados
@@ -99,7 +99,7 @@ io.on('connection', (socket) => {
     io.to(room).emit('room_messages', roomMessages);
 
     // Notificar a otros usuarios
-    socket.broadcast.emit('notifications', room);
+    socket.to(room).emit('notifications', room);
   })
 
   
