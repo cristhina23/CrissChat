@@ -8,15 +8,17 @@ import favicon from "/src/assets/favicon-96x96.png";
 import { Button } from 'react-bootstrap';
 import { useLogoutUserMutation } from '../services/appApi';
 import DefaultImg from "../assets/default-profile-img.png";
+import { useNavigate } from 'react-router-dom';
 
 
 function Navigation() {
   const user = useSelector((state) => state.user);
   const [logoutUser] = useLogoutUserMutation();
+  const navigate = useNavigate();
 
   const handleLogout = async (e) => {
   e.preventDefault();
-  console.log("Logout button clicked ✅");
+  console.log("Logout button clicked ");
 
   if (!user || !user.id) {
       console.warn('No user in redux state');
@@ -24,11 +26,12 @@ function Navigation() {
     }
 
     try {
-      const res = await logoutUser({ userId: user.id }).unwrap();
+      const res = await logoutUser({ _id: user.id, newMessages: {} }).unwrap();
       console.log('Logout response :', res);
       // borrar persist store si usas redux-persist
       localStorage.removeItem('persist:root');
-      window.location.replace('/');
+      navigate('/');
+      window.location.reload();
     } catch (err) {
       console.error('Logout failed ', err);
     }

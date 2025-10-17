@@ -1,118 +1,65 @@
-import React, { useState, useContext, useEffect } from "react";
-import { Form, Row, Col, Button } from "react-bootstrap";
-import "../styles/MessajeForm.css";
-import { useSelector } from "react-redux";
-import { AppContext } from "../context/appContext";
+import React, { useState, useContext } from 'react'
+import { Button, Col, Form, Row } from 'react-bootstrap'
+import { useSelector } from 'react-redux'
+import { BsFillSendFill } from "react-icons/bs";
+import '../styles/MessajeForm.css'
+import  { AppContext } from '../context/appContext'
+
+
 
 function MessageForm() {
   const user = useSelector((state) => state.user);
-  const [message, setMessage] = useState("");
-  const { socket, currentRoom, messages, setMessages } = useContext(AppContext);
+  const [message, setMessage] = useState('')
+  const { socket, currentRoom, setMessages, messages, privateMemberMsg } = useContext(AppContext)
 
-  function getFormattedDate() {
+  const getFormattedDate = () => {
     const date = new Date();
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${day}/${month}/${year}`;
+    let month = ( date.getMonth() + 1).toString();
+    month = month.length > 1 ? month : '0' + month;
+    let day = date.getDate().toString();
+    day = day.length > 1 ? day : '0' + day;
+    return `${day}/${month}/${year}`
+
   }
 
   const todayDate = getFormattedDate();
 
-  useEffect(() => {
-    if (!socket) return;
+  socket.off('room_messages').on('room_messages', (roomMessages) => {
+    console.log('Room messages:', roomMessages);
+    setMessages(roomMessages);
+  })
 
-    // ✅ Escuchar mensajes de sala
-    socket.off("room_messages").on("room_messages", (roomMessages) => {
-      // El servidor envía solo mensajes del room actual
-      if (Array.isArray(roomMessages)) {
-        setMessages(roomMessages);
-      } else {
-        console.warn("Formato inesperado en room_messages:", roomMessages);
-      }
-    });
-
-    return () => socket.off("room_messages");
-  }, [socket, currentRoom, setMessages]);
-
-  function handleSubmit(e) {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!message.trim()) return;
-    if (!user || !user.id) return alert("User not found or not logged in");
+    if (!message.trim() ) return;
+    const today = new Date();
+    const minutes = today.getMinutes() < 10 ? '0' + today.getMinutes() : today.getMinutes();
+    const time = today.getHours() + ':' + minutes;
+    const roomId = currentRoom;
 
-    const date = new Date();
-    const minutes = date.getMinutes().toString().padStart(2, "0");
-    const time = date.getHours() + ":" + minutes;
-
-    socket.emit("message_room", currentRoom, message, user.id, time, todayDate);
-    setMessage("");
+    socket.emit('message_room', roomId, message, user, todayDate, time);
+    setMessage('');
   }
 
   return (
-    <div className="container__chat">
-      <div className="message__output">
-        {!user && (
-          <div className="alert alert-danger">
-            Login to start a conversation
-          </div>
-        )}
-
-        {user &&
-          Array.isArray(messages) &&
-          messages.map(({ _id: date, messagesByDate }, idx) => (
-            <div key={idx}>
-              <p className="alert alert-info text-center message_date_indicator">
-                {date}
-              </p>
-
-              {Array.isArray(messagesByDate) &&
-                messagesByDate.map(({ content, time, from: sender }, msgidx) => (
-                  <div
-                    key={msgidx}
-                    className={
-                      String(sender) === String(user.id)
-                        ? "message message_sent"
-                        : "message message_received"
-                    }
-                  >
-                    <p>{content}</p>
-                    <small className="message-time">{time}</small>
-                  </div>
-                ))}
-            </div>
-          ))}
-      </div>
-
+    <div className='container__chat'>
+      <div className='message__output'>{!user && <div className='alert alert-danger'> Please login to start a conversation</div>} </div>
       <Form onSubmit={handleSubmit}>
         <Row>
           <Col md={11}>
-            <Form.Group>
-              <Form.Control
-                type="text"
-                placeholder="Type a message..."
-                disabled={!user}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-              />
-            </Form.Group>
+           <Form.Group>
+             <Form.Control type="text" placeholder="Type your message" disabled={!user} value={message} onChange={(e)  => setMessage(e.target.value)} />
+           </Form.Group>
           </Col>
           <Col md={1}>
-            <Button
-              variant="primary"
-              type="submit"
-              style={{
-                width: "100%",
-                backgroundColor: "var(--color-primary)",
-              }}
-              disabled={!user}
-            >
-              <i className="fas fa-paper-plane"></i>
-            </Button>
+            <Button variant='priamary'  type="submit" style={{ width: '100%', background: 'var(--btn-primary-bg)', border: 'none'}}> <BsFillSendFill style={{ color: 'white' }} /></Button>
+
           </Col>
         </Row>
       </Form>
     </div>
-  );
+  )
 }
 
-export default MessageForm;
+export default MessageForm

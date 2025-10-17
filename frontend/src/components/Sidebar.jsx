@@ -1,278 +1,76 @@
-// src/components/Sidebar.jsx
-import React, { useContext, useEffect, useMemo, useState } from "react";
-import { ListGroup, Modal } from "react-bootstrap";
-import { useDispatch, useSelector } from "react-redux";
+import React, { useContext, useEffect, useMemo } from "react";
+import { ListGroup } from "react-bootstrap";
+import { useSelector } from "react-redux";
 import { AppContext } from "../context/appContext";
 import "../styles/Sidebar.css";
-import { addNotifications, resetNotifications } from "../features/userSlice";
 
 function Sidebar() {
   const user = useSelector((state) => state.user);
   const {
     socket,
     setMembers,
-    members = [],
+    members,
     setRooms,
+    rooms,
     setCurrentRoom,
     setPrivateMemberMsg,
-    rooms = [],
     currentRoom,
-    privateMemberMsg,
-    messages = [],
-    newMessages = {},
-    setNewMessages, // <- usamos el setter del contexto para sincronizar badges en la UI
+    privateMemberMessage,
   } = useContext(AppContext);
 
-  const dispatch = useDispatch();
-  const [selectedMember, setSelectedMember] = useState(null);
-  const [showProfile, setShowProfile] = useState(false);
+  socket.off("new_message").on("new_message", (payload) => {
+    console.log(payload)
+  })
+ 
 
-  function handleViewProfile(member) {
-    setSelectedMember(member);
-    setShowProfile(true);
-  }
-
-  function orderIds(id1, id2) {
-    return id1 > id2 ? id1 + "-" + id2 : id2 + "-" + id1;
-  }
-
-  function joinRoom(room, isPublic = true) {
-    if (!user) return alert("Please login");
-
-    socket.emit("join_room", room);
-    setCurrentRoom(room);
-
-    if (isPublic) {
-      setPrivateMemberMsg(null);
-    }
-
-    // limpiar notificaciones de esa sala en redux y en contexto
-    dispatch(resetNotifications(room));
-    if (setNewMessages) {
-      setNewMessages((prev = {}) => {
-        const copy = { ...prev };
-        delete copy[room];
-        return copy;
-      });
-    }
-  }
-
-  // Obtener lista de salas públicas
-  const getRooms = () => {
-    fetch("http://localhost:5000/rooms")
+  function getRooms() {
+    fetch(`${import.meta.env.VITE_API_URL}/rooms`)
       .then((res) => res.json())
-      .then((data) => setRooms(data))
-      .catch((err) => console.error("Error fetching rooms:", err));
-  };
+      .then((data) => {
+        setRooms(data);
+      });
+  }
 
   useEffect(() => {
-    if (!user || !socket) return;
-
-    // Solo establecer "general" al inicio (no depende de currentRoom para evitar re-ejecuciones)
-    if (!currentRoom) {
+    if (user) {
       setCurrentRoom("general");
-      socket.emit("join_room", "general", true);
+      getRooms();
+      socket.emit("join_room", "general");
+      socket.emit("new_user", user);
+
+      socket.on("new_user", (members) => {
+      setMembers(members);
+    });
+  
     }
 
-    getRooms();
-    socket.emit("new_user");
+  }, [user]);
 
-    // recibir lista de miembros y ordenar
-    socket.off("new_user").on("new_user", (payload) => {
-      try {
-        const sorted = Array.isArray(payload)
-          ? [...payload].sort((a, b) => {
-              if (a.status === "online" && b.status !== "online") return -1;
-              if (a.status !== "online" && b.status === "online") return 1;
-              return new Date(b.createdAt) - new Date(a.createdAt);
-            })
-          : [];
-        setMembers(sorted);
-      } catch (err) {
-        console.error("Error procesando new_user payload:", err);
-        setMembers(payload || []);
-      }
-    });
-
-    // notificaciones (server emite 'notifications' con room)
-    socket.off("notifications").on("notifications", (data) => {
-  const room = data.room || data;
-  if (room && room !== currentRoom) {
-    dispatch(addNotifications(room));
-  }
-});
-
-    return () => {
-      socket.off("new_user");
-      socket.off("notifications");
-    };
-    
-  }, [user, socket]);
-
-  // Ordenar miembros (último mensaje arriba)
-  const sortedMembers = useMemo(() => {
-    if (!Array.isArray(members) || !user) return members;
-
-    const me = members.find((m) => String(m._id) === String(user.id));
-    const otherMembers = members.filter((m) => String(m._id) !== String(user.id));
-
-    const membersWithLastMsg = otherMembers.map((member) => {
-      const msgs = messages.filter(
-        (msg) =>
-          (String(msg.from) === String(user.id) && String(msg.to) === String(member._id)) ||
-          (String(msg.from) === String(member._id) && String(msg.to) === String(user.id))
-      );
-      const lastMsgTime =
-        msgs.length > 0
-          ? Math.max(...msgs.map((m) => (m.timestamp ? new Date(m.timestamp).getTime() : 0)))
-          : 0;
-      return { ...member, lastMsgTime };
-    });
-
-    membersWithLastMsg.sort((a, b) => b.lastMsgTime - a.lastMsgTime);
-
-    return me ? [me, ...membersWithLastMsg] : membersWithLastMsg;
-  }, [members, user, messages]);
-
-  function handlePrivateMemberMsg(member) {
-    if (!user) return;
-    const roomId = orderIds(user.id, member._id);
-    setPrivateMemberMsg(member);
-    joinRoom(roomId, false);
-
-    // limpiar notifs de esta conversación tanto en redux como en contexto
-    dispatch(resetNotifications(roomId));
-    if (setNewMessages) {
-      setNewMessages((prev = {}) => {
-        const copy = { ...prev };
-        delete copy[roomId];
-        return copy;
-      });
-    }
-  }
-
-  if (!user) return null;
+  if (!user) return <></>;
 
   return (
     <>
       <h2>Available Rooms</h2>
       <ListGroup className="mb-3">
-        {rooms.map((room, index) => (
+        {rooms.map((room, idx) => (
           <ListGroup.Item
-            key={index}
-            onClick={() => joinRoom(room, true)}
-            active={room === currentRoom}
-            className="d-flex justify-content-between align-items-center"
+            key={idx}
             style={{ cursor: "pointer" }}
+            
           >
-            <span>{room}</span>
-            {/* badge: consultamos primero AppContext.newMessages para una respuesta instantánea,
-                si no existe mostramos lo que haya en user.newMessages */}
-            {currentRoom !== room && (newMessages?.[room] || user?.newMessages?.[room]) ? (
-              <span className="badge rounded-pill bg-primary ms-2">
-                {newMessages?.[room] ?? user?.newMessages?.[room]}
-              </span>
-            ) : null}
+            {room}
           </ListGroup.Item>
         ))}
       </ListGroup>
 
       <h2>Members</h2>
       <ListGroup>
-        {sortedMembers.map((member) => (
-          <ListGroup.Item
-            key={member._id}
-            className="d-flex justify-content-between align-items-center"
-            active={privateMemberMsg && String(privateMemberMsg._id) === String(member._id)}
-            onClick={() => handlePrivateMemberMsg(member)}
-            disabled={String(member._id) === String(user.id)}
-            style={{ cursor: "pointer" }}
-          >
-            <div className="d-flex align-items-center">
-              {member.picture && (
-                <img
-                  src={member.picture}
-                  alt={member.name}
-                  style={{
-                    width: "35px",
-                    height: "35px",
-                    borderRadius: "50%",
-                    marginRight: "8px",
-                    cursor: "pointer",
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleViewProfile(member);
-                  }}
-                />
-              )}
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <div>
-                  <span>{member.name || member.email}</span>{" "}
-                  {String(member._id) === String(user.id) && (
-                    <span style={{ marginLeft: "5px" }}>(You)</span>
-                  )}
-                </div>
-                <small
-                  className="d-flex align-items-center"
-                  style={{
-                    color: member.status === "online" ? "green" : "gray",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "inline-block",
-                      width: "8px",
-                      height: "8px",
-                      borderRadius: "50%",
-                      backgroundColor: member.status === "online" ? "green" : "gray",
-                      marginRight: "5px",
-                    }}
-                  />
-                  {member.status}
-                </small>
-              </div>
-            </div>
-
-            {/* badge para notificaciones privadas: preferimos AppContext.newMessages si existe */}
-            { (newMessages?.[orderIds(user.id, member._id)] || user?.newMessages?.[orderIds(user.id, member._id)]) &&
-              privateMemberMsg?._id !== member._id && (
-                <span className="badge rounded-pill bg-danger">
-                  {newMessages?.[orderIds(user.id, member._id)] ?? user?.newMessages?.[orderIds(user.id, member._id)]}
-                </span>
-              )}
-          </ListGroup.Item>
-        ))}
+       {members.map((member) => (
+         <ListGroup.Item key={member.id} style={{cursor: "pointer"}}>
+           {member.name}
+         </ListGroup.Item>
+       ))}
       </ListGroup>
-
-      {/* Modal de perfil */}
-      <Modal show={showProfile} onHide={() => setShowProfile(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Profile</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedMember && (
-            <div className="text-center">
-              <img
-                src={selectedMember.picture}
-                alt={selectedMember.name}
-                style={{
-                  width: "100px",
-                  height: "100px",
-                  borderRadius: "50%",
-                  marginBottom: "10px",
-                }}
-              />
-              <h5>{selectedMember.name}</h5>
-              <p>Status: {selectedMember.status || "Offline"}</p>
-              <p>
-                Member since:{" "}
-                {selectedMember.createdAt ? new Date(selectedMember.createdAt).toLocaleDateString() : "Unknown"}
-              </p>
-            </div>
-          )}
-        </Modal.Body>
-      </Modal>
     </>
   );
 }

@@ -3,13 +3,13 @@ import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 const appApi = createApi({
   reducerPath: 'appApi',
   baseQuery: fetchBaseQuery({
-    baseUrl: 'http://localhost:5000',
+    baseUrl: import.meta.env.VITE_API_URL,
   }),
   endpoints: (builder) => ({
     // Create user
     signupUser: builder.mutation({
       query: (user) => ({
-        url: 'users/signup',
+        url: '/users/signup',
         method: 'POST',
         body: user,
       }),
@@ -27,7 +27,7 @@ const appApi = createApi({
     // Logout user
     logoutUser: builder.mutation({
       query: (payload) => ({
-        url: 'users/logout',
+        url: '/users/logout',
         method: 'POST',
         body: payload,
       }),

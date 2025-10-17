@@ -32,7 +32,7 @@ const createUser = async (req, res) => {
 }
 
 const handleLogin = async (req, res) => {
-  try {
+ 
     const { email, password } = req.body;
 
     if (!email || !password) {
@@ -71,36 +71,27 @@ const handleLogin = async (req, res) => {
       message: 'Login successful',
       user: userResponse,
     });
-  } catch (err) {
-    console.error('Login error:', err);
-    return res.status(500).json({ message: 'Internal Server Error' });
-  }
+  
 };
 
 const handleLogout = async (req, res) => {
-  try {
-    const { userId, newMessages } = req.body;
-
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    user.status = 'offline';
-    await user.save();
+   const { _id, newMessages } = req.body;
     
-    const members = await User.find();
-    const io = req.app.get('io');
-    if (io) io.emit('new_user', members);
-
-    res.status(200).json({ message: "Logout successful" });
-
-    return res.status(200).json({ message: "Logout successful" });
-  } catch (err) {
-    console.error("Logout error:", err);
-    return res.status(500).json({ message: "Error during logout" });
-  }
+      const user = await User.findById(_id);
+    
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+    
+      user.status = 'offline';
+      user.newMessages = newMessages;
+      await user.save();
+    
+      const members = await User.find();
+      const io = req.app.get('io');
+      io.emit('new_user', members);
+    
+      return res.status(200).json({ message: 'Logout successful' });
 };
 
 

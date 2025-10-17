@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { socket } = require('../../frontend/src/context/appContext');
 
 const messageSchema = new mongoose.Schema({
   content: String,
