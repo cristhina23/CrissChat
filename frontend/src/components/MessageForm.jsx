@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect, useRef } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { Form, Row, Col, Button } from "react-bootstrap";
 import "../styles/MessajeForm.css";
 import { useSelector } from "react-redux";
@@ -23,7 +23,7 @@ function MessageForm() {
   useEffect(() => {
     if (!socket) return;
 
-    // ✅ Escuchar mensajes de sala
+    //  Escuchar mensajes de sala
     socket.off("room_messages").on("room_messages", (roomMessages) => {
       // El servidor envía solo mensajes del room actual
       if (Array.isArray(roomMessages)) {
