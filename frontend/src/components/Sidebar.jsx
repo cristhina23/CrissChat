@@ -97,7 +97,7 @@ function Sidebar() {
     // notificaciones (server emite 'notifications' con room)
     socket.off("notifications").on("notifications", (data) => {
   const room = data.room || data;
-  if (room && room !== currentRoom) {
+  if (room  !== currentRoom) {
     dispatch(addNotifications(room));
   }
 });

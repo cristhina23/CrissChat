@@ -32,7 +32,7 @@
 }
 .message__output {
   scrollbar-width: thin;
-  scrollbar-color: #FEAC0C #f1f1f1; /* thumb y track */
+  scrollbar-color: #FF702B #f1f1f1; /* thumb y track */
 }
 .message_content {
   display: flex;

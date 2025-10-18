@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { Form, Row, Col, Button } from "react-bootstrap";
 import "../styles/MessajeForm.css";
 import { useSelector } from "react-redux";
@@ -8,6 +8,7 @@ function MessageForm() {
   const user = useSelector((state) => state.user);
   const [message, setMessage] = useState("");
   const { socket, currentRoom, messages, setMessages } = useContext(AppContext);
+  
 
   function getFormattedDate() {
     const date = new Date();

@@ -12,7 +12,7 @@ import { AppContext, socket } from './context/appContext.js'
 function App() {
   const user = useSelector((state) => state.user);
   const [rooms, setRooms] = useState([]);
-  const [currentRoom, setCurrentRoom] = useState([]);
+  const [currentRoom, setCurrentRoom] = useState('');
   const [members, setMembers] = useState([]);
   const [messages, setMessages] = useState([]);
   const [privateMemberMsg, setPrivateMemberMsg] = useState({});

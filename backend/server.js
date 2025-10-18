@@ -81,35 +81,37 @@ io.on('connection', (socket) => {
   });
 
   // Enviar mensaje a la sala
-  socket.on('message_room', async (room, content, senderId, time, date) => {
-    try {
-      console.log('💬 Message received:', content);
+  // Enviar mensaje a la sala
+socket.on('message_room', async (room, content, senderId, time, date) => {
+  try {
+    console.log('💬 Message received:', content);
 
-      await Message.create({
-        content,
-        from: senderId,
-        to: String(room),
-        time,
-        date,
-        timestamp: new Date(),
-      });
+    await Message.create({
+      content,
+      from: senderId,
+      to: String(room),
+      time,
+      date,
+      timestamp: new Date(),
+    });
 
-      let roomMessages = await getLastMessagesFromRoom(room);
-      roomMessages = sortRoomMessages(roomMessages);
+    let roomMessages = await getLastMessagesFromRoom(room);
+    roomMessages = sortRoomMessages(roomMessages);
 
-      // ✅ Enviamos SOLO los mensajes a la sala actual
-      io.to(room).emit('room_messages', roomMessages);
+    // Enviar los mensajes solo a la sala actual
+    io.to(room).emit('room_messages', roomMessages);
 
-      // 🔕 Enviamos notificación solo a quienes NO están en la sala
-      socket.broadcast.emit('notifications', room );
-    } catch (error) {
-      console.error('❌ Error saving message:', error);
-    }
-  });
+    // 🔔 Enviar notificación SOLO a usuarios fuera de esa sala
+    socket.broadcast.emit('notifications', { room });
+  } catch (error) {
+    console.error('❌ Error saving message:', error);
+  }
+});
+
 
   // Cuando un usuario se desconecta
   socket.on('disconnect', async () => {
-    console.log('🔴 User disconnected:', socket.id);
+    console.log('User disconnected:', socket.id);
     const members = await User.find().sort({ status: -1, createdAt: -1 });
     io.emit('new_user', members);
   });
