@@ -66,48 +66,55 @@ function Sidebar() {
   };
 
   useEffect(() => {
-    if (!user || !socket) return;
+  if (!user || !socket) return;
 
-    // Solo establecer "general" al inicio (no depende de currentRoom para evitar re-ejecuciones)
-    if (!currentRoom) {
-      setCurrentRoom("general");
-      socket.emit("join_room", "general", true);
-    }
-
-    getRooms();
-    socket.emit("new_user");
-
-    // recibir lista de miembros y ordenar
-    socket.off("new_user").on("new_user", (payload) => {
-      try {
-        const sorted = Array.isArray(payload)
-          ? [...payload].sort((a, b) => {
-              if (a.status === "online" && b.status !== "online") return -1;
-              if (a.status !== "online" && b.status === "online") return 1;
-              return new Date(b.createdAt) - new Date(a.createdAt);
-            })
-          : [];
-        setMembers(sorted);
-      } catch (err) {
-        console.error("Error procesando new_user payload:", err);
-        setMembers(payload || []);
-      }
-    });
-
-    // notificaciones (server emite 'notifications' con room)
-    socket.off("notifications").on("notifications", (data) => {
-  const room = data.room || data;
-  if (room  !== currentRoom) {
-    dispatch(addNotifications(room));
+  // Solo establecer "general" al inicio (no depende de currentRoom para evitar re-ejecuciones)
+  if (!currentRoom) {
+    setCurrentRoom("general");
+    socket.emit("join_room", "general", true);
   }
-});
 
-    return () => {
-      socket.off("new_user");
-      socket.off("notifications");
-    };
-    
-  }, [user, socket]);
+  getRooms();
+  socket.emit("new_user");
+
+  // recibir lista de miembros y ordenar
+  socket.off("new_user").on("new_user", (payload) => {
+    try {
+      const sorted = Array.isArray(payload)
+        ? [...payload].sort((a, b) => {
+            if (a.status === "online" && b.status !== "online") return -1;
+            if (a.status !== "online" && b.status === "online") return 1;
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          })
+        : [];
+      setMembers(sorted);
+    } catch (err) {
+      console.error("Error procesando new_user payload:", err);
+      setMembers(payload || []);
+    }
+  });
+
+  // ✅ Notificaciones sin cambiar automáticamente de sala
+  socket.off("notifications").on("notifications", (data) => {
+    const room = data.room || data;
+
+    // Evitar que se abra el chat automáticamente
+    if (room !== currentRoom) {
+      // Solo mostrar notificación
+      dispatch(addNotifications(room));
+
+      // Si quieres un sonido o alerta visual:
+      // new Audio('/notification.mp3').play();
+    }
+  });
+
+  return () => {
+    socket.off("new_user");
+    socket.off("notifications");
+  };
+
+}, [user, socket, currentRoom]);
+
 
   // Ordenar miembros (último mensaje arriba)
   const sortedMembers = useMemo(() => {
